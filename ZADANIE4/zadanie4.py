@@ -20,7 +20,12 @@ def policz_fragment_pi(pocz: int, kon: int, krok: float, wyniki: list[float], in
     #   - obliczyć lokalną sumę dla przydzielonego przedziału,
     #   - wpisać wynik do wyniki[indeks].
 
-    pass  # zaimplementuj obliczanie fragmentu całki dla danego wątku
+    sum = 0.0
+    for i in range(pocz, kon):
+        x = (i + 0.5) * krok
+        sum += 4.0 / (1.0 + x * x)
+
+    wyniki[indeks] = sum
 
 
 def main():
@@ -43,6 +48,26 @@ def main():
     #   - obliczenie przybliżenia π jako sumy wyników z poszczególnych wątków,
     #   - pomiar czasu i wypisanie przyspieszenia.
     # ---------------------------------------------------------------
+
+    for threads in LICZBA_WATKOW:
+        wyniki = [0.0] * threads
+        thread_list = []
+        krok = 1.0 / LICZBA_KROKOW
+        start_time = time.time()
+
+        for i in range(threads):
+            start = i * (LICZBA_KROKOW // threads)
+            end = (i + 1) * (LICZBA_KROKOW // threads) if i != threads - 1 else LICZBA_KROKOW
+            w = threading.Thread(target=policz_fragment_pi, args=(start, end, krok, wyniki, i))
+            thread_list.append(w)
+            w.start()
+
+        for w in thread_list:
+            w.join()
+
+        pi_approx = sum(wyniki) * krok
+        elapsed_time = time.time() - start_time
+        print(f"Wątki: {threads:2d}, π ≈ {pi_approx:.15f}, czas: {elapsed_time:.4f} s")
 
 
 if __name__ == "__main__":
